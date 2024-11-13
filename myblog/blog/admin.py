@@ -4,3 +4,4 @@ from blog.models import *
 # Register your models here.
 admin.site.register(CustomUser)
 admin.site.register(Post)
+admin.site.register(Comment)

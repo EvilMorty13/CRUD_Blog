@@ -19,3 +19,11 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ['id', 'title', 'content', 'created_at', 'author']
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), required=False)
+    class Meta:
+        model = Comment
+        fields = "__all__"

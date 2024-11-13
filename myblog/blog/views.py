@@ -43,9 +43,45 @@ class PostDetailView(RetrieveUpdateDestroyAPIView):
             instance.delete()  # Only allow deleting if the user is the author
         else:
             raise PermissionDenied("You do not have permission to delete this post.")
-    
 
+
+class CommentListCreateView(ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
+    def get_queryset(self):
+        post_id = self.kwargs.get('fk')
+        return Comment.objects.filter(post_id=post_id)
     
+    def perform_create(self, serializer):
+            # Automatically assign the currently logged-in user as the user and the fk as post
+            post_id = self.kwargs.get('fk')  # Get the post ID from the URL
+            post = Post.objects.get(id=post_id)  # Retrieve the post object
+            
+            # Automatically set the logged-in user and the post foreign key
+            serializer.save(user=self.request.user, post=post)
+            
+
+class CommentDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    
+    def perform_update(self, serializer):
+        # Check if the user is the author of the comment before updating
+        comment = self.get_object()  # Get the comment instance being updated
+        if comment.user == self.request.user:
+            # If the user is the author, allow the update
+            serializer.save()
+        else:
+            # If the user is not the author, raise a PermissionDenied exception
+            raise PermissionDenied("You do not have permission to edit this comment.")
+
+    def perform_destroy(self, instance):
+        # Check if the user is the author of the comment before deleting
+        if instance.user == self.request.user:
+            # If the user is the author, allow the delete
+            instance.delete()
+        else:
+            # If the user is not the author, raise a PermissionDenied exception
+            raise PermissionDenied("You do not have permission to delete this comment.")
