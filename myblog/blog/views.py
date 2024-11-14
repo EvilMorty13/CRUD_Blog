@@ -62,31 +62,25 @@ class CommentListCreateView(ListCreateAPIView):
             serializer.save(user=self.request.user, post=post)
             
 
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
-
 class CommentDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     
-    def update(self, request, *args, **kwargs):
-        comment = self.get_object()
+    def perform_update(self, serializer):
+        # Check if the user is the author of the comment before updating
+        comment = self.get_object()  # Get the comment instance being updated
         if comment.user == self.request.user:
-            # Allow the update and add a success message
-            serializer = self.get_serializer(comment, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response({"message": "Comment successfully updated", "data": serializer.data}, status=status.HTTP_200_OK)
         else:
             raise PermissionDenied("You do not have permission to edit this comment.")
 
-    def destroy(self, request, *args, **kwargs):
-        comment = self.get_object()
-        if comment.user == self.request.user:
-            # Allow deletion and return a success message
-            comment.delete()
+    def perform_destroy(self, instance):
+        # Check if the user is the author of the comment before deleting
+        if instance.user == self.request.user:
+            # If the user is the author, allow the delete
+            instance.delete()
             return Response({"message": "Comment successfully deleted"}, status=status.HTTP_204_NO_CONTENT)
         else:
             raise PermissionDenied("You do not have permission to delete this comment.")
