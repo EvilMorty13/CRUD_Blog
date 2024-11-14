@@ -15,15 +15,18 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    # author = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    author = serializers.ReadOnlyField(source='author.id')
     class Meta:
         model = Post
         fields = ['id', 'title', 'content', 'created_at', 'author']
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
-    post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), required=False)
+    # user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), required=False)
+    # post = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), required=False)
+    user = serializers.ReadOnlyField(source='user.id')
+    post = serializers.ReadOnlyField(source='post.id')
     class Meta:
         model = Comment
         fields = "__all__"
